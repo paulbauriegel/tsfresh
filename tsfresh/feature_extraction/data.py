@@ -14,6 +14,7 @@ def _binding_helper(f, kwargs, column_sort, column_id, column_kind, column_value
     def wrapped_feature_extraction(x):
         if column_sort is not None:
             x = x.sort_values(column_sort)
+            x = x.set_index(column_sort)
 
         chunk = Timeseries(
             x[column_id].iloc[0], x[column_kind].iloc[0], x[column_value]
