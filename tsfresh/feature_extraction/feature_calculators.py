@@ -36,6 +36,8 @@ from statsmodels.tsa.ar_model import AutoReg
 
 from tsfresh.utilities.string_manipulation import convert_to_output_format
 
+#np.seterr(all='raise')
+
 with warnings.catch_warnings():
     # Ignore warnings of the patsy package
     warnings.simplefilter("ignore", DeprecationWarning)
@@ -479,7 +481,7 @@ def partial_autocorrelation(x, param):
             max_lag = n // 2 - 1
         else:
             max_lag = max_demanded_lag
-        if max_lag > 0:
+        if max_lag > 0 and (np.unique(x).shape[0]>1):
             pacf_coeffs = list(pacf(x, method="ld", nlags=max_lag))
             pacf_coeffs = pacf_coeffs + [np.nan] * max(0, (max_demanded_lag - max_lag))
         else:
@@ -510,6 +512,8 @@ def augmented_dickey_fuller(x, param):
 
     @functools.lru_cache()
     def compute_adf(autolag):
+        if (np.unique(x).shape[0]>1):
+            return np.NaN, np.NaN, np.NaN
         try:
             return adfuller(x, autolag=autolag)
         except LinAlgError:
@@ -1147,6 +1151,8 @@ def fft_aggregated(x, param):
         :return: the moment requested
         :return type: float
         """
+        if y.sum() == 0:
+            return np.nan
         return y.dot(np.arange(len(y), dtype=float) ** moment) / y.sum()
 
     def get_centroid(y):
@@ -1795,6 +1801,8 @@ def fourier_entropy(x, bins):
     Ref: https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.signal.welch.html
 
     """
+    if (np.unique(x).shape[0]==1):
+        return np.nan
     _, pxx = welch(x, nperseg=min(len(x), 256))
     return binned_entropy(pxx / np.max(pxx), bins)
 
@@ -1920,7 +1928,7 @@ def autocorrelation(x, lag):
     # based on the index, which corresponds to squaring the series.
     if isinstance(x, pd.Series):
         x = x.values
-    if len(x) < lag:
+    if len(x) <= lag:
         return np.nan
     # Slice the relevant subseries based on the lag
     y1 = x[: (len(x) - lag)]
