@@ -211,6 +211,32 @@ def __check_if_pandas_series(x, y):
         raise ValueError("X and y need to have the same index!")
 
 
+def __check_for_binary(x, is_x=True):
+    """
+    Helper function to check if a column is binary.
+    Checks if only the values true and false (or 0 and 1) are present in the values.
+
+    :param x: the values to check for.
+    :type x: pandas.Series or numpy.array
+
+    :return: None
+    :rtype: None
+
+    :raises: ``ValueError`` if the values are not binary.
+    """
+    err_msg = "[target_binary_feature_binary_test] Feature is not binary!" if is_x else "Target is not binary!"
+    if x.nunique() > 2:
+        raise ValueError(err_msg)
+    else:
+        vals = sorted(x.unique())
+        if not (vals == [0, 1] or vals == [False, True]):
+           warnings.warn(
+               f"The binary {'feature' if is_x else 'target'} should have " +
+                "values 1 and 0 (or True and False). " +
+                "Instead found" + str(x.unique()),
+               RuntimeWarning,
+           )
+ 
 def __check_for_binary_target(y):
     """
     Helper function to check if a target column is binary.
@@ -224,16 +250,8 @@ def __check_for_binary_target(y):
 
     :raises: ``ValueError`` if the values are not binary.
     """
-    if not set(y) == {0, 1}:
-        if len(set(y)) > 2:
-            raise ValueError("Target is not binary!")
-
-        warnings.warn(
-            "The binary target should have "
-            "values 1 and 0 (or True and False). "
-            "Instead found" + str(set(y)),
-            RuntimeWarning,
-        )
+     
+    __check_for_binary(y, False)
 
 
 def __check_for_binary_feature(x):
@@ -249,18 +267,7 @@ def __check_for_binary_feature(x):
 
     :raises: ``ValueError`` if the values are not binary.
     """
-    if not set(x) == {0, 1}:
-        if len(set(x)) > 2:
-            raise ValueError(
-                "[target_binary_feature_binary_test] Feature is not binary!"
-            )
-
-        warnings.warn(
-            "A binary feature should have only "
-            "values 1 and 0 (incl. True and False). "
-            "Instead found " + str(set(x)) + " in feature ''" + str(x.name) + "''.",
-            RuntimeWarning,
-        )
+    __check_for_binary(x, True)
 
 
 def _check_for_nans(x, y):
@@ -272,7 +279,7 @@ def _check_for_nans(x, y):
     :type y: pandas.Series
     :raises: `ValueError` if target or feature contains NaNs.
     """
-    if np.isnan(x.values).any():
+    if x.isna().max():
         raise ValueError("Feature {} contains NaN values".format(x.name))
-    elif np.isnan(y.values).any():
+    elif y.isna().max():
         raise ValueError("Target contains NaN values")
