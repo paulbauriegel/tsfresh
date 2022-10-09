@@ -154,6 +154,8 @@ def _estimate_friedrich_coefficients(x, m, r):
         df["quantiles"] = pd.qcut(df.signal, r)
     except ValueError:
         return [np.NaN] * (m + 1)
+    except IndexError:
+        return [np.NaN] * (m + 1)
 
     quantiles = df.groupby("quantiles")
 
