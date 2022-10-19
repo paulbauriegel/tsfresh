@@ -1530,6 +1530,8 @@ def change_quantiles(x, ql, qh, isabs, f_agg):
         bin_cat_0 = bin_cat == 0
     except ValueError:  # Occurs when ql are qh effectively equal, e.g. x is not long enough or is too categorical
         return 0
+    except IndexError:
+        return 0
     # We only count changes that start and end inside the corridor
     ind = (bin_cat_0 & _roll(bin_cat_0, 1))[1:]
     if np.sum(ind) == 0:

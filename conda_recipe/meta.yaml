@@ -1,5 +1,5 @@
 {% set name = "tsfresh" %}
-{% set version = "0.19.1" %}
+{% set version = "0.19.3" %}
 
 package:
   name: {{ name|lower }}
